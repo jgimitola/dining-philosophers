@@ -1,9 +1,11 @@
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -16,34 +18,57 @@ import javax.swing.JPanel;
  */
 public class MainFrame extends javax.swing.JFrame {
 
+    private int ANCHO_JPANEL = 700;
+    private int ALTO_JPANEL = 700;
+
+    private int ANCHO_SPRITE = 91;
+    private int ALTO_SPRITE = ANCHO_SPRITE;
+
+    private int NUM_FILOSOFOS = 5;
+
+    private int RADIO_FILOSOFOS = (int) ((NUM_FILOSOFOS * ANCHO_SPRITE) / (2 * Math.PI));
+
+    BufferedImage sentado_comiendo;
+    BufferedImage sentado_esperando;
+    BufferedImage silla;
+    BufferedImage pensando;
+    BufferedImage saciado;
+
     /**
      * Creates new form MainFrame
      */
     public MainFrame() {
 
         initComponents();
-        //this.setExtendedState(MAXIMIZED_BOTH);
+
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        Dimension d = tk.getScreenSize();
+        d.setSize(d.width, d.height - 48);
+        this.setSize(d);
+
+        ANCHO_JPANEL = (int) (this.getWidth() * 0.6);
+        ALTO_JPANEL = this.getHeight();
+
         initComponent();
+
     }
 
     void initComponent() {
         this.add(jPanelMesa);
-        jPanelMesa.setBounds(0, 0, ancho, alto);
+        jPanelMesa.setBounds(0, 0, ANCHO_JPANEL, ALTO_JPANEL);
         jPanelMesa.setVisible(true);
+
         try {
             this.sentado_comiendo = ImageIO.read(new File("imagenes/sentado_comiendo.png"));
             this.sentado_esperando = ImageIO.read(new File("imagenes/sentado_esperando.png"));
-        } catch (Exception e) {
-            System.out.println(e);
-        }
+            this.pensando = ImageIO.read(new File("imagenes/pensando.png"));
+            this.silla = ImageIO.read(new File("imagenes/silla_vacia.png"));
+            this.saciado = ImageIO.read(new File("imagenes/saciado.png"));
 
+        } catch (Exception e) {
+            System.out.println("Error cargando imagenes: " + e);
+        }
     }
-    int ancho = 700;
-    int alto = 700;
-    BufferedImage sentado_comiendo;
-    BufferedImage sentado_esperando;
-    BufferedImage silla;
-    BufferedImage pensando;
 
     public Graphics2D rotarEje(int x, int y, double angulo, Graphics graphics) {
         AffineTransform at = AffineTransform.getTranslateInstance(x, y);
@@ -53,45 +78,46 @@ public class MainFrame extends javax.swing.JFrame {
         return g2;
     }
 
-    public void pintarJpanel(JPanel jpanel, int with, int heigth) {
-        if (with > 0 && heigth > 0) {
+    public void pintarJpanel(JPanel jpanel, int width, int height) {
+        if (width > 0 && height > 0) {
             Graphics g = jpanel.getGraphics();
 
-            Image buffer = createImage(with, heigth);
+            Image buffer = createImage(width, height);
             Graphics2D pantallaVirtual = (Graphics2D) buffer.getGraphics();
             pantallaVirtual.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             pantallaVirtual.setColor(Color.BLACK);
             try {
-                int numF = 4;
-                double diferencia = Math.toRadians(360 / numF);
-                //hipotenusa
-                int radio = 200;
+                double diferencia = (2 * Math.PI) / (NUM_FILOSOFOS);
 
-                int centrox = (int) jpanel.getWidth() / 2;
-                int centroy = (int) jpanel.getHeight() / 2;
+                int centrox = ANCHO_JPANEL / 2;
+                int centroy = ALTO_JPANEL / 2;
 
                 for (double i = 0; i < 2 * Math.PI; i = i + diferencia) {
-                    int x = (int) (centrox + (Math.sin(i) * radio));
-                    int y = (int) (centroy - (Math.cos(i) * radio));
+                    int x = (int) (centrox + (Math.sin(i) * RADIO_FILOSOFOS));
+                    int y = (int) (centroy - (Math.cos(i) * RADIO_FILOSOFOS));
 
                     Graphics2D g2 = rotarEje(x, y, i, pantallaVirtual);
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                    g2.drawImage(sentado_esperando, -sentado_esperando.getWidth() / 2, -sentado_esperando.getHeight(), jpanel);
+                    BufferedImage sprite = saciado;
+
+                    //TODO: switch para saber que pintar
+                    g2.drawImage(sprite, -sprite.getWidth() / 2, -sprite.getHeight(), jpanel);
                     pantallaVirtual.fillOval(x - 5, y - 5, 10, 10);
                 }
-                pantallaVirtual.drawOval(centrox - radio, centroy - radio, radio * 2, radio * 2);
+                pantallaVirtual.drawOval(centrox - RADIO_FILOSOFOS, centroy - RADIO_FILOSOFOS, RADIO_FILOSOFOS * 2, RADIO_FILOSOFOS * 2);
             } catch (Exception e) {
-                System.out.println(e);
+                System.out.println("Error pintando escena: " + e);
             }
-            g.drawImage(buffer, 0, 0, with, heigth, null);
+            pantallaVirtual.drawLine(width - 1, 0, width - 1, height);
+            g.drawImage(buffer, 0, 0, width, height, null);
         }
     }
 
     @Override
     public void update(Graphics g) {
-        super.update(g); //To change body of generated methods, choose Tools | Templates.
+        super.update(g);
         pintarJpanel(jPanelMesa, jPanelMesa.getWidth(), jPanelMesa.getHeight());
     }
 
@@ -124,6 +150,7 @@ public class MainFrame extends javax.swing.JFrame {
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setResizable(false);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
