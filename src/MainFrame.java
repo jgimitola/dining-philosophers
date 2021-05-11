@@ -14,7 +14,7 @@ import javax.swing.JPanel;
 
 /**
  *
- * @author JhanU
+ * @author jgimitola, jhanu, anietom
  */
 public class MainFrame extends javax.swing.JFrame {
 
@@ -33,6 +33,7 @@ public class MainFrame extends javax.swing.JFrame {
     BufferedImage silla;
     BufferedImage pensando;
     BufferedImage saciado;
+    BufferedImage tenedor;
 
     /**
      * Creates new form MainFrame
@@ -64,7 +65,7 @@ public class MainFrame extends javax.swing.JFrame {
             this.pensando = ImageIO.read(new File("imagenes/pensando.png"));
             this.silla = ImageIO.read(new File("imagenes/silla_vacia.png"));
             this.saciado = ImageIO.read(new File("imagenes/saciado.png"));
-
+            this.tenedor = ImageIO.read(new File("imagenes/fork.png"));
         } catch (Exception e) {
             System.out.println("Error cargando imagenes: " + e);
         }
@@ -104,7 +105,14 @@ public class MainFrame extends javax.swing.JFrame {
 
                     //TODO: switch para saber que pintar
                     g2.drawImage(sprite, -sprite.getWidth() / 2, -sprite.getHeight(), jpanel);
-                    pantallaVirtual.fillOval(x - 5, y - 5, 10, 10);
+                    pantallaVirtual.fillOval(x - 5, y - 5, 10, 10); // Puntos
+
+                    // Dibujar tenedores (se rotan para que queden entre los filosofos)
+                    x = (int) (centrox + (Math.sin(i - diferencia/2) * RADIO_FILOSOFOS));
+                    y = (int) (centroy - (Math.cos(i - diferencia/2) * RADIO_FILOSOFOS));
+                    g2 = rotarEje(x, y, i - diferencia/2, pantallaVirtual);
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.drawImage(tenedor, -tenedor.getWidth() / 2, 0, jpanel);
                 }
                 pantallaVirtual.drawOval(centrox - RADIO_FILOSOFOS, centroy - RADIO_FILOSOFOS, RADIO_FILOSOFOS * 2, RADIO_FILOSOFOS * 2);
             } catch (Exception e) {
