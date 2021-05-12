@@ -1,15 +1,7 @@
 
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-
-import java.awt.RenderingHints;
-
-import java.awt.image.BufferedImage;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
 
 /**
  *
@@ -32,7 +24,7 @@ public class Filosofo implements Runnable {
     public MainFrame mainFrame;
     private static int TIEMPO_ACTIVIDAD = 5000;
     private RotateLabel sprite;
-    private int tiempoEspera = 5000;
+    private int tiempoEspera = 2500;
 
     public Filosofo(int id, Semaphore comedor, Tenedor izquierdo, Tenedor derecho, EstadoFilosofo estado, int x, int y, double angulo, MainFrame mainFrame) {
         this.id = id;
@@ -109,31 +101,28 @@ public class Filosofo implements Runnable {
 
         while (i < VECES_A_COMER) {
             try {
-                System.out.printf("F-%d está esperando sentarse.%n", id);
-                System.out.flush();
                 mainFrame.agregarTextTo(String.format("F-%d está esperando sentarse.%n", id));
                 estado = EstadoFilosofo.ESPERANDO_SILLA;
                 pintar();
+                espera();
 
                 comedor.acquire();
 
-                System.out.printf("F-%d está pensando.%n", id);
                 mainFrame.agregarTextTo(String.format("F-%d está pensando.%n", id));
                 estado = EstadoFilosofo.PENSANDO;
                 pintar();
+                espera();
 
-                System.out.printf("F-%d quiere tomar D-T-%d.%n", id, derecho.getId());
                 mainFrame.agregarTextTo(String.format("F-%d quiere tomar D-T-%d.%n", id, derecho.getId()));
                 derecho.getSemaforo().acquire();
-                System.out.printf("F-%d tomó D-T-%d.%n", id, der);
+
                 mainFrame.agregarTextTo(String.format("F-%d tomó D-T-%d.%n", id, der));
                 derecho.setEstado(EstadoTenedor.TOMADO_DERECHA);
                 pintar();
 
-                System.out.printf("F-%d quiere tomar I-T-%d.%n", id, izq);
                 mainFrame.agregarTextTo(String.format("F-%d quiere tomar I-T-%d.%n", id, izq));
                 izquierdo.getSemaforo().acquire();
-                System.out.printf("F-%d tomó I-T-%d.%n", id, izq);
+
                 mainFrame.agregarTextTo(String.format("F-%d tomó I-T-%d.%n", id, izq));
                 izquierdo.setEstado(EstadoTenedor.TOMADO_IZQUIERDA);
                 pintar();
@@ -143,41 +132,31 @@ public class Filosofo implements Runnable {
             }
 
             try {
-                System.out.printf("F-%d está comiendo.%n", id);
+
                 mainFrame.agregarTextTo(String.format("F-%d está comiendo.%n", id));
                 estado = EstadoFilosofo.COMIENDO;
 
                 derecho.setEstado(EstadoTenedor.TOMADO_DERECHA);
                 izquierdo.setEstado(EstadoTenedor.TOMADO_IZQUIERDA);
 
-                System.out.printf("Antes F-%d I-T-%d = %s.%n", id, izq, izquierdo.getEstado());
-                System.out.printf("Antes F-%d D-T-%d = %s.%n", id, der, derecho.getEstado());
-
                 pintar();
-
-                System.out.printf("Despues F-%d I-T-%d = %s.%n", id, izq, izquierdo.getEstado());
-                System.out.printf("Despues F-%d D-T-%d = %s.%n", id, der, derecho.getEstado());
-
-                pera(2500);
+                espera();
 
             } finally {
-                System.out.printf("F-%d terminó de comer.%n", id);
+
                 mainFrame.agregarTextTo(String.format("F-%d terminó de comer.%n", id));
 
                 izquierdo.getSemaforo().release();
-                System.out.printf("F-%d suelta I-T-%d.%n", id, izq);
                 mainFrame.agregarTextTo(String.format("F-%d suelta I-T-%d.%n", id, izq));
                 izquierdo.setEstado(EstadoTenedor.SUELTO);
                 pintar();
 
                 derecho.getSemaforo().release();
-                System.out.printf("F-%d suelta D-T-%d.%n", id, der);
                 mainFrame.agregarTextTo(String.format("F-%d suelta D-T-%d.%n", id, der));
                 derecho.setEstado(EstadoTenedor.SUELTO);
                 pintar();
 
                 comedor.release();
-                System.out.printf("F-%d se para.%n", id);
                 mainFrame.agregarTextTo(String.format("F-%d se para.%n", id));
                 estado = EstadoFilosofo.ESPERANDO_SILLA;
                 pintar();
@@ -185,13 +164,12 @@ public class Filosofo implements Runnable {
             }
             i++;
         }
-        System.out.printf("F-%d comió %d veces de %d.%n", id, i, VECES_A_COMER);
         mainFrame.agregarTextTo(String.format("F-%d comió %d veces de %d.%n", id, i, VECES_A_COMER));
         estado = EstadoFilosofo.SACIADO;
         pintar();
     }
 
-    public void pera(long time) {
+    public void espera() {
         try {
             Thread.sleep(tiempoEspera);
         } catch (InterruptedException ex) {

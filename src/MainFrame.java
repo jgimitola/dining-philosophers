@@ -15,6 +15,7 @@ import java.util.concurrent.Semaphore;
 import java.util.stream.IntStream;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 /**
@@ -77,14 +78,18 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     void initComponent() {
-        this.add(jPanelMesa);
         jTextArea1 = new JTextArea();
-        this.add(jTextArea1);
-        jTextArea1.setAutoscrolls(true);
+        JScrollPane scroll = new JScrollPane(jTextArea1);
+
+        this.add(jPanelMesa);
+        this.add(scroll);
+
         jPanelMesa.setBounds(0, 0, ANCHO_JPANEL, ALTO_JPANEL);
         jPanelMesa.setVisible(true);
-        jTextArea1.setBounds(ANCHO_JPANEL + 3, 0, (int) (this.getWidth() * 0.4) - 40, ALTO_JPANEL - 40);
-        jTextArea1.setVisible(true);
+
+        scroll.setBounds(ANCHO_JPANEL + 5, 0, 400, 350);
+        scroll.setAutoscrolls(true);
+        scroll.setVisible(true);
 
         try {
             this.sentado_comiendo = ImageIO.read(new File("imagenes/sentado_comiendo.png"));

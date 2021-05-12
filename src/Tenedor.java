@@ -4,7 +4,8 @@ import javax.swing.ImageIcon;
 
 /**
  *
- * @author JhanU
+ * @author jgimitola, jhanu, anietom
+ *
  */
 public class Tenedor {
 
