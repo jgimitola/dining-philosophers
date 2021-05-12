@@ -29,7 +29,7 @@ public class MainFrame extends javax.swing.JFrame {
     public int ANCHO_SPRITE = 91;
     public int ALTO_SPRITE = ANCHO_SPRITE;
 
-    public int NUM_FILOSOFOS = 5;
+    public int NUM_FILOSOFOS = 9;
 
     public int CENTROX;
     public int CENTROY;
@@ -62,7 +62,7 @@ public class MainFrame extends javax.swing.JFrame {
 
         Toolkit tk = Toolkit.getDefaultToolkit();
         Dimension d = tk.getScreenSize();
-        d.setSize(d.width, d.height - 48);
+        d.setSize(d.width/2, d.height - 48);
         this.setSize(d);
 
         ANCHO_JPANEL = (int) (this.getWidth() * 0.6);
@@ -83,9 +83,10 @@ public class MainFrame extends javax.swing.JFrame {
         this.add(jPanelMesa);
         jTextArea1 = new JTextArea();
         this.add(jTextArea1);
+        jTextArea1.setAutoscrolls(true);
         jPanelMesa.setBounds(0, 0, ANCHO_JPANEL, ALTO_JPANEL);
         jPanelMesa.setVisible(true);
-        jTextArea1.setBounds(ANCHO_JPANEL + 3, 0, (int) (this.getWidth() * 0.4), 700);
+        jTextArea1.setBounds(ANCHO_JPANEL + 3, 0, (int) (this.getWidth() * 0.4)-40, ALTO_JPANEL-40);
         jTextArea1.setVisible(true);
 
         try {
@@ -117,7 +118,7 @@ public class MainFrame extends javax.swing.JFrame {
         return g2;
     }
 
-    public void actualizarJPanelMesa() {
+    public synchronized void actualizarJPanelMesa() {
         Image buffer = createImage(jPanelMesa.getWidth(), jPanelMesa.getHeight());
         Graphics2D pantallaVirtual = (Graphics2D) buffer.getGraphics();
         Graphics g = jPanelMesa.getGraphics();

@@ -32,7 +32,7 @@ public class Filosofo implements Runnable {
     public MainFrame mainFrame;
     private int izq;
     private int der;
-    private int tiempoEspera = 20000;
+    private int tiempoEspera = 5000;
 
     public Filosofo(int id, Semaphore comedor, Tenedor[] tenedores) {
         this.id = id;
@@ -58,7 +58,7 @@ public class Filosofo implements Runnable {
         mainFrame.getJPanelMesa().add(sprite);
         sprite.setBounds(x, y, 91, 91);
          */
-        izq = (id + 1) % Restaurante.NUM_FILOSOFOS;
+        izq = (id + 1) % mainFrame.NUM_FILOSOFOS;
         der = id;
 
     }
@@ -106,13 +106,13 @@ public class Filosofo implements Runnable {
         g2.transform(at);
         g.drawImage(image.getImage(), 0, 0, sprite);
          */
-        pera(2500);
     }
 
     public void run() {
         int i = 0;
         while (i < VECES_A_COMER) {
             try {
+
                 System.out.printf("F-%d está esperando sentarse.%n", id);
                 mainFrame.agregarTextTo(String.format("F-%d está esperando sentarse.%n", id));
                 estado = EstadoFilosofo.ESPERANDO_SILLA;
@@ -131,6 +131,7 @@ public class Filosofo implements Runnable {
                 System.out.printf("F-%d tomó D-T-%d.%n", id, der);
                 mainFrame.agregarTextTo(String.format("F-%d tomó D-T-%d.%n", id, der));
                 tenedores[der].setEstado(EstadoTenedor.TOMADO_DERECHA);
+                pintar();
 
                 System.out.printf("F-%d quiere tomar I-T-%d.%n", id, izq);
                 mainFrame.agregarTextTo(String.format("F-%d quiere tomar I-T-%d.%n", id, izq));
@@ -149,6 +150,7 @@ public class Filosofo implements Runnable {
                 mainFrame.agregarTextTo(String.format("F-%d está comiendo.%n", id));
                 estado = EstadoFilosofo.COMIENDO;
                 pintar();
+                pera(2500);
 
             } finally {
                 System.out.printf("F-%d terminó de comer.%n", id);
@@ -187,34 +189,6 @@ public class Filosofo implements Runnable {
         } catch (InterruptedException ex) {
             Logger.getLogger(Filosofo.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    public void pintarFilosofo(Filosofo filosofo, Graphics pantallaVirtual) {
-        BufferedImage sprite;
-        switch (filosofo.getEstado()) {
-            case COMIENDO:
-                sprite = mainFrame.sentado_comiendo;
-                break;
-            case PENSANDO:
-                sprite = mainFrame.pensando;
-                break;
-            case ESPERANDO_SILLA:
-                //De pie
-                sprite = mainFrame.sentado_esperando;
-                break;
-            case ESPERANDO_TENEDOR:
-                sprite = mainFrame.sentado_esperando;
-                break;
-            case SACIADO:
-                sprite = mainFrame.saciado;
-                break;
-            default:
-                throw new AssertionError();
-        }
-        Graphics2D g2 = mainFrame.rotarEje(0, 0, angulo, pantallaVirtual);
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.drawImage(sprite, 0, 0, null);
-        g2.drawString("F-" + filosofo.getId(), -sprite.getWidth() / 2 + 32, -sprite.getHeight());
     }
 
     public EstadoFilosofo getEstado() {
