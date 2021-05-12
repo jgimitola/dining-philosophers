@@ -12,10 +12,10 @@ import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 /**
  *
@@ -23,21 +23,21 @@ import javax.swing.JPanel;
  */
 public class MainFrame extends javax.swing.JFrame {
 
-    private int ANCHO_JPANEL = 700;
-    private int ALTO_JPANEL = 700;
+    public int ANCHO_JPANEL = 700;
+    public int ALTO_JPANEL = 700;
 
-    private int ANCHO_SPRITE = 91;
-    private int ALTO_SPRITE = ANCHO_SPRITE;
+    public int ANCHO_SPRITE = 91;
+    public int ALTO_SPRITE = ANCHO_SPRITE;
 
-    private int NUM_FILOSOFOS = 10;
+    public int NUM_FILOSOFOS = 5;
 
-    private int CENTROX;
-    private int CENTROY;
+    public int CENTROX;
+    public int CENTROY;
 
     //Angulo de diferencia entre filosofos
-    private double DIFERENCIA;
+    public double DIFERENCIA;
 
-    private int RADIO_FILOSOFOS = (int) ((NUM_FILOSOFOS * ANCHO_SPRITE) / (2 * Math.PI));
+    public int RADIO_FILOSOFOS = (int) ((NUM_FILOSOFOS * ANCHO_SPRITE) / (2 * Math.PI));
 
     BufferedImage sentado_comiendo;
     BufferedImage sentado_esperando;
@@ -45,6 +45,8 @@ public class MainFrame extends javax.swing.JFrame {
     BufferedImage pensando;
     BufferedImage saciado;
     BufferedImage tenedor;
+
+    JTextArea jTextArea1;
 
     //Modelo
     Tenedor[] tenedores;
@@ -73,10 +75,18 @@ public class MainFrame extends javax.swing.JFrame {
 
     }
 
+    public JPanel getJPanelMesa() {
+        return jPanelMesa;
+    }
+
     void initComponent() {
         this.add(jPanelMesa);
+        jTextArea1 = new JTextArea();
+        this.add(jTextArea1);
         jPanelMesa.setBounds(0, 0, ANCHO_JPANEL, ALTO_JPANEL);
         jPanelMesa.setVisible(true);
+        jTextArea1.setBounds(ANCHO_JPANEL + 3, 0, (int) (this.getWidth() * 0.4), 700);
+        jTextArea1.setVisible(true);
 
         try {
             this.sentado_comiendo = ImageIO.read(new File("imagenes/sentado_comiendo.png"));
@@ -92,7 +102,14 @@ public class MainFrame extends javax.swing.JFrame {
 
     }
 
+    public synchronized void agregarTextTo(String text) {
+        //  String text1 = jTextArea1.getText();
+        // jTextArea1.setText(text1 + "\n" + text);
+        jTextArea1.append(text);
+    }
+
     public Graphics2D rotarEje(int x, int y, double angulo, Graphics graphics) {
+
         AffineTransform at = AffineTransform.getTranslateInstance(x, y);
         at.concatenate(AffineTransform.getRotateInstance(angulo));
         Graphics2D g2 = (Graphics2D) graphics.create();
@@ -106,11 +123,9 @@ public class MainFrame extends javax.swing.JFrame {
         Graphics g = jPanelMesa.getGraphics();
         for (int i = 0; i < NUM_FILOSOFOS; i++) {
             pintarFilosofo(filosofos[i], pantallaVirtual);
-        }
-        for (int i = 0; i < tenedores.length; i++) {
             pintarTenedor(tenedores[i], pantallaVirtual);
+            g.drawImage(buffer, 0, 0, jPanelMesa.getWidth(), jPanelMesa.getHeight(), null);
         }
-        g.drawImage(buffer, 0, 0, jPanelMesa.getWidth(), jPanelMesa.getHeight(), null);
     }
 
     public void comenzar() {
@@ -120,10 +135,10 @@ public class MainFrame extends javax.swing.JFrame {
 
         IntStream.range(0, NUM_FILOSOFOS)
                 .forEach((int i) -> {
-                    double angulo = (i * DIFERENCIA) ;
-                    int x = (int) (CENTROX + (Math.sin(angulo- DIFERENCIA / 2) * RADIO_FILOSOFOS));
-                    int y = (int) (CENTROY - (Math.cos(angulo- DIFERENCIA / 2) * RADIO_FILOSOFOS));
-                    tenedores[i] = new Tenedor(i, new Semaphore(1), x, y, angulo);
+                    double angulo = (i * DIFERENCIA);
+                    int x = (int) (CENTROX + (Math.sin(angulo - DIFERENCIA / 2)));
+                    int y = (int) (CENTROY - (Math.cos(angulo - DIFERENCIA / 2)));
+                    tenedores[i] = new Tenedor(i, new Semaphore(1), x, y, angulo, EstadoTenedor.SUELTO, this);
                 });
 
         //Ejecutamos los filosofos
@@ -137,7 +152,7 @@ public class MainFrame extends javax.swing.JFrame {
             double angulo = i * DIFERENCIA;
             int x = (int) (CENTROX + (Math.sin(angulo) * RADIO_FILOSOFOS));
             int y = (int) (CENTROY - (Math.cos(angulo) * RADIO_FILOSOFOS));
-            Filosofo f = new Filosofo(i, comedor, tenedores, Estado.ESPERANDO_SILLA, x, y, angulo, this);
+            Filosofo f = new Filosofo(i, comedor, tenedores, EstadoFilosofo.ESPERANDO_SILLA, x, y, angulo, this);
             filosofos[i] = f;
             executor.submit(f);
         }
@@ -160,7 +175,7 @@ public class MainFrame extends javax.swing.JFrame {
                 break;
             case ESPERANDO_SILLA:
                 //De pie
-                sprite = sentado_esperando;
+                sprite = silla;
                 break;
             case ESPERANDO_TENEDOR:
                 sprite = sentado_esperando;
@@ -179,10 +194,22 @@ public class MainFrame extends javax.swing.JFrame {
 
     public void pintarTenedor(Tenedor tenedor, Graphics pantallaVirtual) {
         double angulo = tenedor.getAngulo();
-
-        int x = (int) (CENTROX + (Math.sin(angulo - DIFERENCIA / 2) * RADIO_FILOSOFOS));
-        int y = (int) (CENTROY - (Math.cos(angulo - DIFERENCIA / 2) * RADIO_FILOSOFOS));
-        Graphics2D g2 = rotarEje(x, y, angulo - DIFERENCIA / 2, pantallaVirtual);
+        int x;
+        int y;
+        switch (tenedor.getEstado()) {
+            case SUELTO:
+                angulo = angulo - DIFERENCIA / 2;
+                break;
+            case TOMADO_DERECHA:
+                angulo = angulo - (DIFERENCIA * 0.15);
+                break;
+            case TOMADO_IZQUIERDA:
+                angulo = angulo - (DIFERENCIA * 0.85);
+                break;
+        }
+        x = (int) (CENTROX + (Math.sin(angulo) * RADIO_FILOSOFOS));
+        y = (int) (CENTROY - (Math.cos(angulo) * RADIO_FILOSOFOS));
+        Graphics2D g2 = rotarEje(x, y, angulo, pantallaVirtual);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.drawImage(this.tenedor, -this.tenedor.getWidth() / 2, 20, jPanelMesa);
         g2.drawString("T-" + tenedor.getId(), -this.tenedor.getWidth() / 2 + 6, 20);
@@ -237,14 +264,14 @@ public class MainFrame extends javax.swing.JFrame {
     @Override
     public void update(Graphics g) {
         super.update(g);
-        actualizarJPanelMesa();
+        //actualizarJPanelMesa();
         //pintarJpanel(jPanelMesa, jPanelMesa.getWidth(), jPanelMesa.getHeight());
     }
 
     @Override
     public void paint(Graphics g) {
         super.paint(g);
-        actualizarJPanelMesa();
+        // actualizarJPanelMesa();
 
         // pintarJpanel(jPanelMesa, jPanelMesa.getWidth(), jPanelMesa.getHeight());
     }

@@ -6,12 +6,10 @@
 
 /**
  *
- * @author jgimitola, jhanu, anietom
+ * @author JhanU
  */
-public enum Estado {
-    COMIENDO,
-    ESPERANDO_TENEDOR,
-    ESPERANDO_SILLA,
-    PENSANDO,
-    SACIADO
+public enum EstadoTenedor {
+    TOMADO_DERECHA,
+    TOMADO_IZQUIERDA,
+    SUELTO
 }

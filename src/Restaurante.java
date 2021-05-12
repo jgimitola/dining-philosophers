@@ -11,7 +11,7 @@ import java.util.stream.IntStream;
  */
 public class Restaurante {
     
-    public static int NUM_FILOSOFOS = 10;
+    public static int NUM_FILOSOFOS = 4;
     
     public static void main(String[] args) throws InterruptedException {
         Tenedor[] tenedores = new Tenedor[NUM_FILOSOFOS];
