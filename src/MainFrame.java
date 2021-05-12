@@ -29,7 +29,7 @@ public class MainFrame extends javax.swing.JFrame {
     public int ANCHO_SPRITE = 91;
     public int ALTO_SPRITE = ANCHO_SPRITE;
 
-    public int NUM_FILOSOFOS = 9;
+    public int NUM_FILOSOFOS = 5;
 
     public int CENTROX;
     public int CENTROY;
@@ -62,7 +62,7 @@ public class MainFrame extends javax.swing.JFrame {
 
         Toolkit tk = Toolkit.getDefaultToolkit();
         Dimension d = tk.getScreenSize();
-        d.setSize(d.width/2, d.height - 48);
+        d.setSize(d.width * 0.75, d.height - 48);
         this.setSize(d);
 
         ANCHO_JPANEL = (int) (this.getWidth() * 0.6);
@@ -71,12 +71,9 @@ public class MainFrame extends javax.swing.JFrame {
         CENTROX = ANCHO_JPANEL / 2;
         CENTROY = ALTO_JPANEL / 2;
         DIFERENCIA = (2 * Math.PI) / (NUM_FILOSOFOS);
+
         initComponent();
 
-    }
-
-    public JPanel getJPanelMesa() {
-        return jPanelMesa;
     }
 
     void initComponent() {
@@ -86,7 +83,7 @@ public class MainFrame extends javax.swing.JFrame {
         jTextArea1.setAutoscrolls(true);
         jPanelMesa.setBounds(0, 0, ANCHO_JPANEL, ALTO_JPANEL);
         jPanelMesa.setVisible(true);
-        jTextArea1.setBounds(ANCHO_JPANEL + 3, 0, (int) (this.getWidth() * 0.4)-40, ALTO_JPANEL-40);
+        jTextArea1.setBounds(ANCHO_JPANEL + 3, 0, (int) (this.getWidth() * 0.4) - 40, ALTO_JPANEL - 40);
         jTextArea1.setVisible(true);
 
         try {
@@ -103,9 +100,11 @@ public class MainFrame extends javax.swing.JFrame {
 
     }
 
+    public JPanel getJPanelMesa() {
+        return jPanelMesa;
+    }
+
     public synchronized void agregarTextTo(String text) {
-        //  String text1 = jTextArea1.getText();
-        // jTextArea1.setText(text1 + "\n" + text);
         jTextArea1.append(text);
     }
 
@@ -129,6 +128,10 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }
 
+    /**
+     * Inicializa la simulación, esto es, crear semaforos y empezar a ejecutar
+     * los hilos.
+     */
     public void comenzar() {
         tenedores = new Tenedor[NUM_FILOSOFOS];
         filosofos = new Filosofo[NUM_FILOSOFOS];
@@ -144,22 +147,22 @@ public class MainFrame extends javax.swing.JFrame {
 
         //Ejecutamos los filosofos
         ExecutorService executor = Executors.newCachedThreadPool();
-        System.out.println("width: " + jPanelMesa.getWidth() + " hei: " + jPanelMesa.getHeight());
-        Image buffer = createImage(jPanelMesa.getWidth(), jPanelMesa.getHeight());
-        Graphics2D pantallaVirtual = (Graphics2D) buffer.getGraphics();
-        Graphics g = jPanelMesa.getGraphics();
         for (int i = 0; i < NUM_FILOSOFOS; i++) {
-
             double angulo = i * DIFERENCIA;
             int x = (int) (CENTROX + (Math.sin(angulo) * RADIO_FILOSOFOS));
             int y = (int) (CENTROY - (Math.cos(angulo) * RADIO_FILOSOFOS));
-            Filosofo f = new Filosofo(i, comedor, tenedores, EstadoFilosofo.ESPERANDO_SILLA, x, y, angulo, this);
+
+            Filosofo f = new Filosofo(i,
+                    comedor,
+                    tenedores[(i + 1) % NUM_FILOSOFOS],
+                    tenedores[i],
+                    EstadoFilosofo.ESPERANDO_SILLA,
+                    x, y, angulo, this);
+
             filosofos[i] = f;
             executor.submit(f);
         }
-        g.drawImage(buffer, 0, 0, jPanelMesa.getWidth(), jPanelMesa.getHeight(), null);
         executor.shutdown();
-
     }
 
     public void pintarFilosofo(Filosofo filosofo, Graphics pantallaVirtual) {
@@ -175,7 +178,6 @@ public class MainFrame extends javax.swing.JFrame {
                 sprite = pensando;
                 break;
             case ESPERANDO_SILLA:
-                //De pie
                 sprite = silla;
                 break;
             case ESPERANDO_TENEDOR:

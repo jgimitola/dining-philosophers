@@ -17,50 +17,41 @@ import javax.swing.JLabel;
  */
 public class Filosofo implements Runnable {
 
+    /* Modelo */
     private final int id;
     private final Semaphore comedor;
-    private final Tenedor[] tenedores;
+    private Tenedor derecho;
+    private Tenedor izquierdo;
     private final int VECES_A_COMER;
     private EstadoFilosofo estado;
-    private static int TIEMPO_ACTIVIDAD = 5000;
-    private RotateLabel sprite;
 
-    //Grafico
+    /* Grafico */
     private int x;
     private int y;
     private double angulo;
     public MainFrame mainFrame;
-    private int izq;
-    private int der;
+    private static int TIEMPO_ACTIVIDAD = 5000;
+    private RotateLabel sprite;
     private int tiempoEspera = 5000;
 
-    public Filosofo(int id, Semaphore comedor, Tenedor[] tenedores) {
+    public Filosofo(int id, Semaphore comedor, Tenedor izquierdo, Tenedor derecho, EstadoFilosofo estado, int x, int y, double angulo, MainFrame mainFrame) {
         this.id = id;
         this.comedor = comedor;
-        this.tenedores = tenedores;
-        this.VECES_A_COMER = 1 + (int) (Math.random() * ((2 - 1) + 1));
-
-    }
-
-    public Filosofo(int id, Semaphore comedor, Tenedor[] tenedores, EstadoFilosofo estado, int x, int y, double angulo, MainFrame mainFrame) {
-        this.id = id;
-        this.comedor = comedor;
-        this.tenedores = tenedores;
-        this.VECES_A_COMER = 1 + (int) (Math.random() * ((2 - 1) + 1));
+        this.derecho = derecho;
+        this.izquierdo = izquierdo;
+        this.VECES_A_COMER = 1 + (int) (Math.random() * ((2 - 1) + 1)); // TODO: Cambiar 2 por 10 cuando esté listo.
         this.estado = estado;
+
         this.x = x;
         this.y = y;
         this.angulo = angulo;
         this.mainFrame = mainFrame;
 
+        /* -----  Para pintar con labels ----- */
         sprite = new RotateLabel("", angulo, this);
-        /*
-        mainFrame.getJPanelMesa().add(sprite);
-        sprite.setBounds(x, y, 91, 91);
-         */
-        izq = (id + 1) % mainFrame.NUM_FILOSOFOS;
-        der = id;
-
+//        mainFrame.getJPanelMesa().add(sprite);
+//        sprite.setBounds(x, y, 91, 91);
+        /*------------------------------------ */
     }
 
     public void pintar() {
@@ -108,12 +99,18 @@ public class Filosofo implements Runnable {
          */
     }
 
+    @Override
     public void run() {
         int i = 0;
+
+        // Quitar estas variables cuando ya no se imprima en consola.
+        int der = derecho.getId();
+        int izq = izquierdo.getId();
+
         while (i < VECES_A_COMER) {
             try {
-
                 System.out.printf("F-%d está esperando sentarse.%n", id);
+                System.out.flush();
                 mainFrame.agregarTextTo(String.format("F-%d está esperando sentarse.%n", id));
                 estado = EstadoFilosofo.ESPERANDO_SILLA;
                 pintar();
@@ -125,20 +122,20 @@ public class Filosofo implements Runnable {
                 estado = EstadoFilosofo.PENSANDO;
                 pintar();
 
-                System.out.printf("F-%d quiere tomar D-T-%d.%n", id, der);
-                mainFrame.agregarTextTo(String.format("F-%d quiere tomar D-T-%d.%n", id, der));
-                tenedores[der].getSemaforo().acquire();
+                System.out.printf("F-%d quiere tomar D-T-%d.%n", id, derecho.getId());
+                mainFrame.agregarTextTo(String.format("F-%d quiere tomar D-T-%d.%n", id, derecho.getId()));
+                derecho.getSemaforo().acquire();
                 System.out.printf("F-%d tomó D-T-%d.%n", id, der);
                 mainFrame.agregarTextTo(String.format("F-%d tomó D-T-%d.%n", id, der));
-                tenedores[der].setEstado(EstadoTenedor.TOMADO_DERECHA);
+                derecho.setEstado(EstadoTenedor.TOMADO_DERECHA);
                 pintar();
 
                 System.out.printf("F-%d quiere tomar I-T-%d.%n", id, izq);
                 mainFrame.agregarTextTo(String.format("F-%d quiere tomar I-T-%d.%n", id, izq));
-                tenedores[izq].getSemaforo().acquire();
+                izquierdo.getSemaforo().acquire();
                 System.out.printf("F-%d tomó I-T-%d.%n", id, izq);
                 mainFrame.agregarTextTo(String.format("F-%d tomó I-T-%d.%n", id, izq));
-                tenedores[izq].setEstado(EstadoTenedor.TOMADO_IZQUIERDA);
+                izquierdo.setEstado(EstadoTenedor.TOMADO_IZQUIERDA);
                 pintar();
 
             } catch (InterruptedException ex) {
@@ -149,23 +146,34 @@ public class Filosofo implements Runnable {
                 System.out.printf("F-%d está comiendo.%n", id);
                 mainFrame.agregarTextTo(String.format("F-%d está comiendo.%n", id));
                 estado = EstadoFilosofo.COMIENDO;
+
+                derecho.setEstado(EstadoTenedor.TOMADO_DERECHA);
+                izquierdo.setEstado(EstadoTenedor.TOMADO_IZQUIERDA);
+
+                System.out.printf("Antes F-%d I-T-%d = %s.%n", id, izq, izquierdo.getEstado());
+                System.out.printf("Antes F-%d D-T-%d = %s.%n", id, der, derecho.getEstado());
+
                 pintar();
+
+                System.out.printf("Despues F-%d I-T-%d = %s.%n", id, izq, izquierdo.getEstado());
+                System.out.printf("Despues F-%d D-T-%d = %s.%n", id, der, derecho.getEstado());
+
                 pera(2500);
 
             } finally {
                 System.out.printf("F-%d terminó de comer.%n", id);
                 mainFrame.agregarTextTo(String.format("F-%d terminó de comer.%n", id));
 
-                tenedores[izq].getSemaforo().release();
+                izquierdo.getSemaforo().release();
                 System.out.printf("F-%d suelta I-T-%d.%n", id, izq);
                 mainFrame.agregarTextTo(String.format("F-%d suelta I-T-%d.%n", id, izq));
-                tenedores[izq].setEstado(EstadoTenedor.SUELTO);
+                izquierdo.setEstado(EstadoTenedor.SUELTO);
                 pintar();
 
-                tenedores[der].getSemaforo().release();
+                derecho.getSemaforo().release();
                 System.out.printf("F-%d suelta D-T-%d.%n", id, der);
                 mainFrame.agregarTextTo(String.format("F-%d suelta D-T-%d.%n", id, der));
-                tenedores[der].setEstado(EstadoTenedor.SUELTO);
+                derecho.setEstado(EstadoTenedor.SUELTO);
                 pintar();
 
                 comedor.release();
@@ -209,10 +217,6 @@ public class Filosofo implements Runnable {
 
     public Semaphore getComedor() {
         return comedor;
-    }
-
-    public Tenedor[] getTenedores() {
-        return tenedores;
     }
 
     public int getVECES_A_COMER() {

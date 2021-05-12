@@ -2,11 +2,6 @@
 import java.util.concurrent.Semaphore;
 import javax.swing.ImageIcon;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 /**
  *
  * @author JhanU
@@ -16,12 +11,12 @@ public class Tenedor {
     //Modelo
     private final int id;
     private final Semaphore semaforo;
+    private EstadoTenedor estado;
 
     //Grafico
     private int x;
     private int y;
     private double angulo;
-    private EstadoTenedor estado;
     private MainFrame mainFrame;
     private RotateLabel sprite;
 
