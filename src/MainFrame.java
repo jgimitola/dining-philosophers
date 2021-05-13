@@ -30,6 +30,8 @@ public class MainFrame extends javax.swing.JFrame {
 
     public int ANCHO_JPANEL;
     public int ALTO_JPANEL;
+    int MAXX = 0;
+    int MAXY = 0;
 
     public int ANCHO_SPRITE = 91;
     public int ALTO_SPRITE = ANCHO_SPRITE;
@@ -126,6 +128,8 @@ public class MainFrame extends javax.swing.JFrame {
      * los hilos.
      */
     public void comenzar() {
+        MAXX = 0;
+        MAXY = 0;
         btnIniciar1.setEnabled(false);
         txtN1.setEnabled(false);
         jTextArea1.setText("");
@@ -148,6 +152,27 @@ public class MainFrame extends javax.swing.JFrame {
                 });
 
         //Ejecutamos los filosofos
+        for (int i = 0; i < 10; i++) {
+            double angulo = i * DIFERENCIA;
+            int x = (int) (CENTROX + (Math.sin(angulo) * RADIO_FILOSOFOS));
+            int y = (int) (CENTROY - (Math.cos(angulo) * RADIO_FILOSOFOS));
+            if (x > MAXX) {
+                MAXX = x;
+            }
+            if (y > MAXY) {
+                MAXY = y;
+            }
+        }
+        System.out.println("MAXX= " + MAXX);
+        System.out.println("MAXY= " + MAXY);
+        System.out.println("RestaX = " + (MAXX - ANCHO_JPANEL));
+        System.out.println("RestaY = " + (MAXY - ALTO_JPANEL));
+        System.out.println("Radio Filoso= " + RADIO_FILOSOFOS);
+        System.out.println("Diametro Filoso= " + (RADIO_FILOSOFOS * 2));
+        MAXX = MAXX + RADIO_FILOSOFOS + 10;
+        MAXY = MAXY + RADIO_FILOSOFOS * 2;
+        CENTROX = MAXX / 2;
+        CENTROY = MAXY / 2;
         ExecutorService executor = Executors.newFixedThreadPool(NUM_FILOSOFOS);
         for (int i = 0; i < NUM_FILOSOFOS; i++) {
             double angulo = i * DIFERENCIA;
@@ -185,7 +210,8 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     public synchronized void actualizarJPanelMesa() {
-        Image buffer = createImage(jPanelMesa.getWidth(), jPanelMesa.getHeight());
+
+        Image buffer = createImage(MAXX, MAXY);
 
         Graphics2D pantallaVirtual = (Graphics2D) buffer.getGraphics();
         pantallaVirtual.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -206,11 +232,13 @@ public class MainFrame extends javax.swing.JFrame {
             txtN1.setEnabled(true);
             txtN1.setText("");
         }
-        pantallaVirtual.drawLine(ANCHO_JPANEL - 1, 0, ANCHO_JPANEL - 1, ALTO_JPANEL);
+        //pantallaVirtual.drawLine(ANCHO_JPANEL - 1, 0, ANCHO_JPANEL - 1, ALTO_JPANEL);
 
         Graphics g = jPanelMesa.getGraphics();
+        BufferedImage copia = toBufferedImage(buffer);
+        Image copia2 = copia.getScaledInstance(ANCHO_JPANEL, ALTO_JPANEL, Image.SCALE_SMOOTH);
 
-        g.drawImage(buffer, 0, 0, jPanelMesa.getWidth(), jPanelMesa.getHeight(), null);
+        g.drawImage(copia2, 0, 0, jPanelMesa.getWidth(), jPanelMesa.getHeight(), null);
 
     }
 
@@ -246,7 +274,22 @@ public class MainFrame extends javax.swing.JFrame {
         g2.drawString(String.format("Consumido %d/%d", filosofo.getConsumido(), filosofo.getVECES_A_COMER()), -sprite.getWidth() / 2, -sprite.getHeight() - 13);
     }
 
+    public static BufferedImage toBufferedImage(Image img) {
+        if (img instanceof BufferedImage) {
+            return (BufferedImage) img;
+        }
 
+        // Create a buffered image with transparency
+        BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+        // Draw the image on to the buffered image
+        Graphics2D bGr = bimage.createGraphics();
+        bGr.drawImage(img, 0, 0, null);
+        bGr.dispose();
+
+        // Return the buffered image
+        return bimage;
+    }
 
     public void pintarTenedor(Tenedor tenedor, Graphics pantallaVirtual) {
         double angulo = tenedor.getAngulo();
@@ -470,13 +513,15 @@ public class MainFrame extends javax.swing.JFrame {
     private void btnIniciar1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIniciar1ActionPerformed
         if (txtN1.getText().length() > 0) {
             int n = Integer.parseInt(txtN1.getText());
-            if (n >= 2 && n <= 20) {
-                NUM_FILOSOFOS = n;
+            NUM_FILOSOFOS = n;
+
+            if (n >= 2 && n <= 40) {
                 comenzar();
             } else {
                 Toolkit.getDefaultToolkit().beep();
-                JOptionPane.showMessageDialog(null, "n debe estar entre [2, 20]", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(null, "n debe estar entre [2, 40]", "Advertencia", JOptionPane.WARNING_MESSAGE);
             }
+
         }
     }//GEN-LAST:event_btnIniciar1ActionPerformed
 
