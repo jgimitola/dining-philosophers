@@ -209,6 +209,7 @@ public class MainFrame extends javax.swing.JFrame {
         pantallaVirtual.drawLine(ANCHO_JPANEL - 1, 0, ANCHO_JPANEL - 1, ALTO_JPANEL);
 
         Graphics g = jPanelMesa.getGraphics();
+
         g.drawImage(buffer, 0, 0, jPanelMesa.getWidth(), jPanelMesa.getHeight(), null);
 
     }
@@ -237,12 +238,15 @@ public class MainFrame extends javax.swing.JFrame {
             default:
                 throw new AssertionError();
         }
+
         Graphics2D g2 = rotarEje(x, y, angulo, pantallaVirtual);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.drawImage(sprite, -sprite.getWidth() / 2, -sprite.getHeight(), jPanelMesa);
         g2.drawString("F-" + filosofo.getId(), -sprite.getWidth() / 2 + 32, -sprite.getHeight());
         g2.drawString(String.format("Consumido %d/%d", filosofo.getConsumido(), filosofo.getVECES_A_COMER()), -sprite.getWidth() / 2, -sprite.getHeight() - 13);
     }
+
+
 
     public void pintarTenedor(Tenedor tenedor, Graphics pantallaVirtual) {
         double angulo = tenedor.getAngulo();
