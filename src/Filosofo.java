@@ -67,6 +67,7 @@ public class Filosofo implements Runnable {
                 espera();
                 mainFrame.agregarTextTo(String.format("F-%d tomó D-T-%d.%n", id, der));
                 derecho.setEstado(EstadoTenedor.TOMADO_DERECHA);
+                estado = EstadoFilosofo.ESPERANDO_TENEDOR;
                 pintar();
 
                 mainFrame.agregarTextTo(String.format("F-%d quiere tomar I-T-%d.%n", id, izq));
