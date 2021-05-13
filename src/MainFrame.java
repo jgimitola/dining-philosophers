@@ -104,7 +104,7 @@ public class MainFrame extends javax.swing.JFrame {
         
         this.add(label_Log);
         label_Log.setBounds(ANCHO_JPANEL + 5, ALTO_JPANEL / 2 - 24, 32, 24);
-        
+
         this.add(scroll2);
         scroll2.setBounds(ANCHO_JPANEL + 5, 0, (int) ((this.getWidth() * 0.37)), label_Log.getY());
         scroll2.setAutoscrolls(true);
@@ -130,6 +130,7 @@ public class MainFrame extends javax.swing.JFrame {
      * los hilos.
      */
     public void comenzar() {
+        btnIniciar1.setEnabled(false);
         tenedores = new Tenedor[NUM_FILOSOFOS];
         filosofos = new Filosofo[NUM_FILOSOFOS];
         comedor = new Semaphore(NUM_FILOSOFOS - 1);
@@ -186,14 +187,22 @@ public class MainFrame extends javax.swing.JFrame {
 
         pantallaVirtual.fillOval(CENTROX - RADIO_FILOSOFOS, CENTROY - RADIO_FILOSOFOS, 2 * RADIO_FILOSOFOS, 2 * RADIO_FILOSOFOS);
         pantallaVirtual.setColor(Color.black);
+        boolean completed = true;
         for (int i = 0; i < NUM_FILOSOFOS; i++) {
             pintarFilosofo(filosofos[i], pantallaVirtual);
             pintarTenedor(tenedores[i], pantallaVirtual);
+            if (filosofos[i].getEstado() != EstadoFilosofo.SACIADO) {
+                completed = false;
+            }
+        }
+        if (completed) {
+            btnIniciar1.setEnabled(true);
         }
         pantallaVirtual.drawLine(ANCHO_JPANEL - 1, 0, ANCHO_JPANEL - 1, ALTO_JPANEL);
 
         Graphics g = jPanelMesa.getGraphics();
         g.drawImage(buffer, 0, 0, jPanelMesa.getWidth(), jPanelMesa.getHeight(), null);
+
     }
 
     public void pintarFilosofo(Filosofo filosofo, Graphics pantallaVirtual) {
@@ -333,6 +342,11 @@ public class MainFrame extends javax.swing.JFrame {
         jLabel10.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imgs/saciado.png"))); // NOI18N
 
         btnIniciar1.setText("INICIAR NUEVA SIMULACIÓN");
+        btnIniciar1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnIniciar1ActionPerformed(evt);
+            }
+        });
 
         jLabel13.setText("Número de filósofos (n):");
 
@@ -395,10 +409,11 @@ public class MainFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnIniciar1)
-                    .addComponent(txtN1))
+                .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(txtN1)
+                    .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnIniciar1)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(convencionPanelLayout.createSequentialGroup()
@@ -485,6 +500,10 @@ public class MainFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnIniciar1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIniciar1ActionPerformed
+        
+    }//GEN-LAST:event_btnIniciar1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -524,7 +543,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnIniciar;
-    private javax.swing.JButton btnIniciar1;
+	private javax.swing.JButton btnIniciar1;
     private javax.swing.JPanel convencionPanel;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;

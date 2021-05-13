@@ -1,7 +1,5 @@
 
 import java.util.concurrent.Semaphore;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -124,7 +122,7 @@ public class Filosofo implements Runnable {
         try {
             Thread.sleep(tiempoEspera);
         } catch (InterruptedException ex) {
-            Logger.getLogger(Filosofo.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(Filosofo.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
