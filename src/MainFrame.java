@@ -33,7 +33,7 @@ public class MainFrame extends javax.swing.JFrame {
     public int ANCHO_SPRITE = 91;
     public int ALTO_SPRITE = ANCHO_SPRITE;
 
-    public int NUM_FILOSOFOS = 4;
+    public int NUM_FILOSOFOS = 10;
 
     public int CENTROX;
     public int CENTROY;

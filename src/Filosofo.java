@@ -64,14 +64,14 @@ public class Filosofo implements Runnable {
 
                 mainFrame.agregarTextTo(String.format("F-%d quiere tomar D-T-%d.%n", id, derecho.getId()));
                 derecho.getSemaforo().acquire();
-
+                espera();
                 mainFrame.agregarTextTo(String.format("F-%d tomó D-T-%d.%n", id, der));
                 derecho.setEstado(EstadoTenedor.TOMADO_DERECHA);
                 pintar();
 
                 mainFrame.agregarTextTo(String.format("F-%d quiere tomar I-T-%d.%n", id, izq));
                 izquierdo.getSemaforo().acquire();
-
+                espera();
                 mainFrame.agregarTextTo(String.format("F-%d tomó I-T-%d.%n", id, izq));
                 izquierdo.setEstado(EstadoTenedor.TOMADO_IZQUIERDA);
                 pintar();
