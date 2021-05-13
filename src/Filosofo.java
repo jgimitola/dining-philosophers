@@ -11,6 +11,7 @@ public class Filosofo implements Runnable {
 
     /* Modelo */
     private final int id;
+    private int consumido;
     private final Semaphore comedor;
     private Tenedor derecho;
     private Tenedor izquierdo;
@@ -22,84 +23,34 @@ public class Filosofo implements Runnable {
     private int y;
     private double angulo;
     public MainFrame mainFrame;
-    private static int TIEMPO_ACTIVIDAD = 5000;
-    private RotateLabel sprite;
-    private int tiempoEspera = 2500;
+    private int tiempoEspera = 2100;
 
     public Filosofo(int id, Semaphore comedor, Tenedor izquierdo, Tenedor derecho, EstadoFilosofo estado, int x, int y, double angulo, MainFrame mainFrame) {
         this.id = id;
+        this.consumido = 0;
         this.comedor = comedor;
         this.derecho = derecho;
         this.izquierdo = izquierdo;
-        this.VECES_A_COMER = 1 + (int) (Math.random() * ((2 - 1) + 1)); // TODO: Cambiar 2 por 10 cuando esté listo.
+        this.VECES_A_COMER = 1 + (int) (Math.random() * ((10 - 1) + 1));
         this.estado = estado;
 
         this.x = x;
         this.y = y;
         this.angulo = angulo;
         this.mainFrame = mainFrame;
-
-        /* -----  Para pintar con labels ----- */
-        sprite = new RotateLabel("", angulo, this);
-//        mainFrame.getJPanelMesa().add(sprite);
-//        sprite.setBounds(x, y, 91, 91);
-        /*------------------------------------ */
     }
 
     public void pintar() {
         mainFrame.actualizarJPanelMesa();
-        /*
-        ImageIcon image = null;
-        System.out.println("Esta pintando");
-        try {
-            switch (estado) {
-                case COMIENDO:
-                    image = new ImageIcon("imagenes/sentado_comiendo.png");
-                    break;
-                case PENSANDO:
-                    image = new ImageIcon("imagenes/pensando.png");
-                    break;
-                case ESPERANDO_SILLA:
-                    //De pie
-                    image = new ImageIcon("imagenes/silla_vacia.png");
-                    break;
-                case ESPERANDO_TENEDOR:
-                    image = new ImageIcon("imagenes/sentado_esperando.png");
-                    break;
-                case SACIADO:
-                    image = new ImageIcon("imagenes/saciado.png");
-                    break;
-                default:
-                    throw new AssertionError();
-            }
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-        sprite.setIcon(image);
-        tenedores[izq].pintar();
-        tenedores[der].pintar();
-         */
-
- /*
-        System.out.println("Esta pintando");
-
-        AffineTransform at = AffineTransform.getTranslateInstance(0, 0);
-        at.concatenate(AffineTransform.getRotateInstance(angulo));
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.transform(at);
-        g.drawImage(image.getImage(), 0, 0, sprite);
-         */
     }
 
     @Override
     public void run() {
-        int i = 0;
 
-        // Quitar estas variables cuando ya no se imprima en consola.
         int der = derecho.getId();
         int izq = izquierdo.getId();
 
-        while (i < VECES_A_COMER) {
+        while (consumido < VECES_A_COMER) {
             try {
                 mainFrame.agregarTextTo(String.format("F-%d está esperando sentarse.%n", id));
                 estado = EstadoFilosofo.ESPERANDO_SILLA;
@@ -162,9 +113,9 @@ public class Filosofo implements Runnable {
                 pintar();
 
             }
-            i++;
+            consumido++;
         }
-        mainFrame.agregarTextTo(String.format("F-%d comió %d veces de %d.%n", id, i, VECES_A_COMER));
+        mainFrame.agregarTextTo(String.format("F-%d comió %d veces de %d.%n", id, consumido, VECES_A_COMER));
         estado = EstadoFilosofo.SACIADO;
         pintar();
     }
@@ -177,43 +128,32 @@ public class Filosofo implements Runnable {
         }
     }
 
-    public EstadoFilosofo getEstado() {
-        return estado;
-    }
-
     public int getX() {
         return x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public Semaphore getComedor() {
-        return comedor;
-    }
-
-    public int getVECES_A_COMER() {
-        return VECES_A_COMER;
     }
 
     public int getY() {
         return y;
     }
 
-    public void setY(int y) {
-        this.y = y;
+    public EstadoFilosofo getEstado() {
+        return estado;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public int getConsumido() {
+        return consumido;
+    }
+
+    public int getVECES_A_COMER() {
+        return VECES_A_COMER;
     }
 
     public double getAngulo() {
         return angulo;
     }
 
-    public void setAngulo(double angulo) {
-        this.angulo = angulo;
-    }
 }

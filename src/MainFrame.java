@@ -14,9 +14,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.stream.IntStream;
 import javax.imageio.ImageIO;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.text.DefaultCaret;
+import static javax.swing.text.DefaultCaret.ALWAYS_UPDATE;
 
 /**
  *
@@ -24,13 +27,13 @@ import javax.swing.JTextArea;
  */
 public class MainFrame extends javax.swing.JFrame {
 
-    public int ANCHO_JPANEL = 700;
-    public int ALTO_JPANEL = 700;
+    public int ANCHO_JPANEL;
+    public int ALTO_JPANEL;
 
     public int ANCHO_SPRITE = 91;
     public int ALTO_SPRITE = ANCHO_SPRITE;
 
-    public int NUM_FILOSOFOS = 5;
+    public int NUM_FILOSOFOS = 4;
 
     public int CENTROX;
     public int CENTROY;
@@ -61,13 +64,15 @@ public class MainFrame extends javax.swing.JFrame {
 
         initComponents();
 
+        this.setTitle("La cena de los filósofos");
+
         Toolkit tk = Toolkit.getDefaultToolkit();
         Dimension d = tk.getScreenSize();
-        d.setSize(d.width * 0.75, d.height - 48);
+        d.setSize(d.width * 0.85, d.height - 48);
         this.setSize(d);
 
         ANCHO_JPANEL = (int) (this.getWidth() * 0.6);
-        ALTO_JPANEL = this.getHeight();
+        ALTO_JPANEL = this.getHeight() - 48;
 
         CENTROX = ANCHO_JPANEL / 2;
         CENTROY = ALTO_JPANEL / 2;
@@ -79,17 +84,30 @@ public class MainFrame extends javax.swing.JFrame {
 
     void initComponent() {
         jTextArea1 = new JTextArea();
+
+        DefaultCaret caret = (DefaultCaret) jTextArea1.getCaret();
+        caret.setUpdatePolicy(ALWAYS_UPDATE);
         JScrollPane scroll = new JScrollPane(jTextArea1);
+        JScrollPane scroll2 = new JScrollPane(convencionPanel);
+
+        JLabel label_Log = new JLabel("Log: ");
 
         this.add(jPanelMesa);
-        this.add(scroll);
-
         jPanelMesa.setBounds(0, 0, ANCHO_JPANEL, ALTO_JPANEL);
         jPanelMesa.setVisible(true);
 
-        scroll.setBounds(ANCHO_JPANEL + 5, 0, 400, 350);
+        this.add(scroll);
+        scroll.setBounds(ANCHO_JPANEL + 5, ALTO_JPANEL / 2, (int) ((this.getWidth() * 0.37)), ALTO_JPANEL / 2);
         scroll.setAutoscrolls(true);
         scroll.setVisible(true);
+
+        this.add(scroll2);
+        scroll2.setBounds(ANCHO_JPANEL + 5, 0, (int) ((this.getWidth() * 0.37)), 150);
+        scroll2.setAutoscrolls(true);
+        scroll2.setVisible(true);
+
+        this.add(label_Log);
+        label_Log.setBounds(ANCHO_JPANEL + 5, ALTO_JPANEL / 2 - 24, 32, 24);
 
         try {
             this.sentado_comiendo = ImageIO.read(new File("imagenes/sentado_comiendo.png"));
@@ -102,7 +120,41 @@ public class MainFrame extends javax.swing.JFrame {
         } catch (Exception e) {
             System.out.println("Error cargando imagenes: " + e);
         }
+    }
 
+    /**
+     * Inicializa la simulación, esto es, crear semaforos y empezar a ejecutar
+     * los hilos.
+     */
+    public void comenzar() {
+        tenedores = new Tenedor[NUM_FILOSOFOS];
+        filosofos = new Filosofo[NUM_FILOSOFOS];
+        comedor = new Semaphore(NUM_FILOSOFOS - 1);
+
+        IntStream.range(0, NUM_FILOSOFOS)
+                .forEach((int i) -> {
+                    double angulo = (i * DIFERENCIA);
+                    tenedores[i] = new Tenedor(i, new Semaphore(1), angulo, EstadoTenedor.SUELTO, this);
+                });
+
+        //Ejecutamos los filosofos
+        ExecutorService executor = Executors.newFixedThreadPool(NUM_FILOSOFOS);
+        for (int i = 0; i < NUM_FILOSOFOS; i++) {
+            double angulo = i * DIFERENCIA;
+            int x = (int) (CENTROX + (Math.sin(angulo) * RADIO_FILOSOFOS));
+            int y = (int) (CENTROY - (Math.cos(angulo) * RADIO_FILOSOFOS));
+
+            Filosofo f = new Filosofo(i,
+                    comedor,
+                    tenedores[(i + 1) % NUM_FILOSOFOS],
+                    tenedores[i],
+                    EstadoFilosofo.ESPERANDO_SILLA,
+                    x, y, angulo, this);
+
+            filosofos[i] = f;
+            executor.submit(f);
+        }
+        executor.shutdown();
     }
 
     public JPanel getJPanelMesa() {
@@ -124,56 +176,27 @@ public class MainFrame extends javax.swing.JFrame {
 
     public synchronized void actualizarJPanelMesa() {
         Image buffer = createImage(jPanelMesa.getWidth(), jPanelMesa.getHeight());
+
         Graphics2D pantallaVirtual = (Graphics2D) buffer.getGraphics();
-        Graphics g = jPanelMesa.getGraphics();
+        pantallaVirtual.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        pantallaVirtual.setColor(Color.white);
+
+        pantallaVirtual.fillOval(CENTROX - RADIO_FILOSOFOS, CENTROY - RADIO_FILOSOFOS, 2 * RADIO_FILOSOFOS, 2 * RADIO_FILOSOFOS);
+        pantallaVirtual.setColor(Color.black);
         for (int i = 0; i < NUM_FILOSOFOS; i++) {
             pintarFilosofo(filosofos[i], pantallaVirtual);
             pintarTenedor(tenedores[i], pantallaVirtual);
-            g.drawImage(buffer, 0, 0, jPanelMesa.getWidth(), jPanelMesa.getHeight(), null);
         }
-    }
+        pantallaVirtual.drawLine(ANCHO_JPANEL - 1, 0, ANCHO_JPANEL - 1, ALTO_JPANEL);
 
-    /**
-     * Inicializa la simulación, esto es, crear semaforos y empezar a ejecutar
-     * los hilos.
-     */
-    public void comenzar() {
-        tenedores = new Tenedor[NUM_FILOSOFOS];
-        filosofos = new Filosofo[NUM_FILOSOFOS];
-        comedor = new Semaphore(NUM_FILOSOFOS - 1);
-
-        IntStream.range(0, NUM_FILOSOFOS)
-                .forEach((int i) -> {
-                    double angulo = (i * DIFERENCIA);
-                    int x = (int) (CENTROX + (Math.sin(angulo - DIFERENCIA / 2)));
-                    int y = (int) (CENTROY - (Math.cos(angulo - DIFERENCIA / 2)));
-                    tenedores[i] = new Tenedor(i, new Semaphore(1), x, y, angulo, EstadoTenedor.SUELTO, this);
-                });
-
-        //Ejecutamos los filosofos
-        ExecutorService executor = Executors.newCachedThreadPool();
-        for (int i = 0; i < NUM_FILOSOFOS; i++) {
-            double angulo = i * DIFERENCIA;
-            int x = (int) (CENTROX + (Math.sin(angulo) * RADIO_FILOSOFOS));
-            int y = (int) (CENTROY - (Math.cos(angulo) * RADIO_FILOSOFOS));
-
-            Filosofo f = new Filosofo(i,
-                    comedor,
-                    tenedores[(i + 1) % NUM_FILOSOFOS],
-                    tenedores[i],
-                    EstadoFilosofo.ESPERANDO_SILLA,
-                    x, y, angulo, this);
-
-            filosofos[i] = f;
-            executor.submit(f);
-        }
-        executor.shutdown();
+        Graphics g = jPanelMesa.getGraphics();
+        g.drawImage(buffer, 0, 0, jPanelMesa.getWidth(), jPanelMesa.getHeight(), null);
     }
 
     public void pintarFilosofo(Filosofo filosofo, Graphics pantallaVirtual) {
         double angulo = filosofo.getAngulo();
-        int x = (int) (CENTROX + (Math.sin(angulo) * RADIO_FILOSOFOS));
-        int y = (int) (CENTROY - (Math.cos(angulo) * RADIO_FILOSOFOS));
+        int x = filosofo.getX();
+        int y = filosofo.getY();
         BufferedImage sprite;
         switch (filosofo.getEstado()) {
             case COMIENDO:
@@ -198,6 +221,7 @@ public class MainFrame extends javax.swing.JFrame {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.drawImage(sprite, -sprite.getWidth() / 2, -sprite.getHeight(), jPanelMesa);
         g2.drawString("F-" + filosofo.getId(), -sprite.getWidth() / 2 + 32, -sprite.getHeight());
+        g2.drawString(String.format("Consumido %d/%d", filosofo.getConsumido(), filosofo.getVECES_A_COMER()), -sprite.getWidth() / 2, -sprite.getHeight() - 13);
     }
 
     public void pintarTenedor(Tenedor tenedor, Graphics pantallaVirtual) {
@@ -219,69 +243,19 @@ public class MainFrame extends javax.swing.JFrame {
         y = (int) (CENTROY - (Math.cos(angulo) * RADIO_FILOSOFOS));
         Graphics2D g2 = rotarEje(x, y, angulo, pantallaVirtual);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.drawImage(this.tenedor, -this.tenedor.getWidth() / 2, 20, jPanelMesa);
-        g2.drawString("T-" + tenedor.getId(), -this.tenedor.getWidth() / 2 + 6, 20);
-
-    }
-
-    public void pintarJpanel(JPanel jpanel, int width, int height) {
-        if (width > 0 && height > 0) {
-            Graphics g = jpanel.getGraphics();
-
-            Image buffer = createImage(width, height);
-            Graphics2D pantallaVirtual = (Graphics2D) buffer.getGraphics();
-            pantallaVirtual.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            pantallaVirtual.setColor(Color.BLACK);
-            try {
-                double diferencia = (2 * Math.PI) / (NUM_FILOSOFOS);
-
-                int numF = 0;
-                for (double i = 0; i < 2 * Math.PI; i = i + diferencia) {
-                    int x = (int) (CENTROX + (Math.sin(i) * RADIO_FILOSOFOS));
-                    int y = (int) (CENTROY - (Math.cos(i) * RADIO_FILOSOFOS));
-
-                    Graphics2D g2 = rotarEje(x, y, i, pantallaVirtual);
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                    BufferedImage sprite = saciado;
-
-                    g2.drawImage(sprite, -sprite.getWidth() / 2, -sprite.getHeight(), jpanel);
-                    pantallaVirtual.fillOval(x - 5, y - 5, 10, 10); // Puntos
-                    //Texto identificador
-                    g2.drawString("F-" + numF, -sprite.getWidth() / 2 + 32, -sprite.getHeight());
-
-                    // Dibujar tenedores (se rotan para que queden entre los filosofos)
-                    x = (int) (CENTROX + (Math.sin(i - diferencia / 2) * RADIO_FILOSOFOS));
-                    y = (int) (CENTROY - (Math.cos(i - diferencia / 2) * RADIO_FILOSOFOS));
-                    g2 = rotarEje(x, y, i - diferencia / 2, pantallaVirtual);
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.drawImage(tenedor, -tenedor.getWidth() / 2, 20, jpanel);
-                    g2.drawString("T-" + numF, -tenedor.getWidth() / 2 + 6, 20);
-                    numF = numF + 1;
-                }
-                pantallaVirtual.drawOval(CENTROX - RADIO_FILOSOFOS, CENTROY - RADIO_FILOSOFOS, RADIO_FILOSOFOS * 2, RADIO_FILOSOFOS * 2);
-            } catch (Exception e) {
-                System.out.println("Error pintando escena: " + e);
-            }
-            pantallaVirtual.drawLine(width - 1, 0, width - 1, height);
-            g.drawImage(buffer, 0, 0, width, height, null);
-        }
+        g2.drawImage(this.tenedor, -this.tenedor.getWidth() / 2, 25, jPanelMesa);
+        g2.drawString("T-" + tenedor.getId(), -this.tenedor.getWidth() / 2 + 8, 20);
     }
 
     @Override
     public void update(Graphics g) {
         super.update(g);
-        //actualizarJPanelMesa();
-        //pintarJpanel(jPanelMesa, jPanelMesa.getWidth(), jPanelMesa.getHeight());
     }
 
     @Override
     public void paint(Graphics g) {
         super.paint(g);
-        // actualizarJPanelMesa();
-
-        // pintarJpanel(jPanelMesa, jPanelMesa.getWidth(), jPanelMesa.getHeight());
+        actualizarJPanelMesa();
     }
 
     /**
@@ -294,6 +268,17 @@ public class MainFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         jPanelMesa = new javax.swing.JPanel();
+        convencionPanel = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
 
         javax.swing.GroupLayout jPanelMesaLayout = new javax.swing.GroupLayout(jPanelMesa);
         jPanelMesa.setLayout(jPanelMesaLayout);
@@ -304,6 +289,93 @@ public class MainFrame extends javax.swing.JFrame {
         jPanelMesaLayout.setVerticalGroup(
             jPanelMesaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 117, Short.MAX_VALUE)
+        );
+
+        jLabel1.setText("De pie");
+
+        jLabel2.setText("Pensando");
+
+        jLabel3.setText("Comiendo");
+
+        jLabel4.setText("Saciado");
+
+        jLabel5.setText("Esperando");
+
+        jLabel6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imgs/silla_vacia.png"))); // NOI18N
+
+        jLabel7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imgs/pensando.png"))); // NOI18N
+
+        jLabel8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imgs/sentado_comiendo.png"))); // NOI18N
+
+        jLabel9.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imgs/sentado_esperando.png"))); // NOI18N
+
+        jLabel10.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imgs/saciado.png"))); // NOI18N
+
+        javax.swing.GroupLayout convencionPanelLayout = new javax.swing.GroupLayout(convencionPanel);
+        convencionPanel.setLayout(convencionPanelLayout);
+        convencionPanelLayout.setHorizontalGroup(
+            convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(convencionPanelLayout.createSequentialGroup()
+                .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(convencionPanelLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jLabel6))
+                    .addGroup(convencionPanelLayout.createSequentialGroup()
+                        .addGap(25, 25, 25)
+                        .addComponent(jLabel1)))
+                .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(convencionPanelLayout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addComponent(jLabel7))
+                    .addGroup(convencionPanelLayout.createSequentialGroup()
+                        .addGap(28, 28, 28)
+                        .addComponent(jLabel2)))
+                .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(convencionPanelLayout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addComponent(jLabel8))
+                    .addGroup(convencionPanelLayout.createSequentialGroup()
+                        .addGap(21, 21, 21)
+                        .addComponent(jLabel3)))
+                .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(convencionPanelLayout.createSequentialGroup()
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel9)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel10))
+                    .addGroup(convencionPanelLayout.createSequentialGroup()
+                        .addGap(34, 34, 34)
+                        .addComponent(jLabel5)
+                        .addGap(54, 54, 54)
+                        .addComponent(jLabel4)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        convencionPanelLayout.setVerticalGroup(
+            convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, convencionPanelLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, convencionPanelLayout.createSequentialGroup()
+                        .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel6)
+                            .addComponent(jLabel7))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel1)
+                            .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel2)
+                                .addComponent(jLabel3)))
+                        .addGap(3, 3, 3))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, convencionPanelLayout.createSequentialGroup()
+                        .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel9)
+                            .addComponent(jLabel8)
+                            .addComponent(jLabel10))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel5)
+                            .addComponent(jLabel4))))
+                .addContainerGap())
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -361,6 +433,17 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel convencionPanel;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanelMesa;
     // End of variables declaration//GEN-END:variables
 }
