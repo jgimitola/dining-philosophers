@@ -15,6 +15,7 @@ import java.util.concurrent.Semaphore;
 import java.util.stream.IntStream;
 import javax.imageio.ImageIO;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -68,7 +69,7 @@ public class MainFrame extends javax.swing.JFrame {
 
         Toolkit tk = Toolkit.getDefaultToolkit();
         Dimension d = tk.getScreenSize();
-        d.setSize(d.width * 0.85, d.height - 48);
+        d.setSize(d.width * 0.95, d.height - 48);
         this.setSize(d);
 
         ANCHO_JPANEL = (int) (this.getWidth() * 0.6);
@@ -126,13 +127,14 @@ public class MainFrame extends javax.swing.JFrame {
      */
     public void comenzar() {
         btnIniciar1.setEnabled(false);
+        txtN1.setEnabled(false);
+        jTextArea1.setText("");
         if (NUM_FILOSOFOS > 4) {
             RADIO_FILOSOFOS = (int) ((NUM_FILOSOFOS * ANCHO_SPRITE) / (2 * Math.PI));
         } else {
             RADIO_FILOSOFOS = (int) ((4 * ANCHO_SPRITE) / (2 * Math.PI));
         }
 
-        System.out.println("Sena Filosofal ;::::z.a..sa..sa.xa" + RADIO_FILOSOFOS);
         DIFERENCIA = (2 * Math.PI) / (NUM_FILOSOFOS);
 
         tenedores = new Tenedor[NUM_FILOSOFOS];
@@ -201,6 +203,8 @@ public class MainFrame extends javax.swing.JFrame {
         }
         if (completed) {
             btnIniciar1.setEnabled(true);
+            txtN1.setEnabled(true);
+            txtN1.setText("");
         }
         pantallaVirtual.drawLine(ANCHO_JPANEL - 1, 0, ANCHO_JPANEL - 1, ALTO_JPANEL);
 
@@ -414,12 +418,11 @@ public class MainFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(txtN1)
-                    .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(btnIniciar1)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnIniciar1)
+                    .addComponent(txtN1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(convencionPanelLayout.createSequentialGroup()
                         .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
@@ -462,13 +465,18 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void btnIniciar1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIniciar1ActionPerformed
         if (txtN1.getText().length() > 0) {
-            NUM_FILOSOFOS = Integer.parseInt(txtN1.getText());
-            comenzar();
+            int n = Integer.parseInt(txtN1.getText());
+            if (n >= 2 && n <= 20) {
+                NUM_FILOSOFOS = n;
+                comenzar();
+            } else {
+                Toolkit.getDefaultToolkit().beep();
+                JOptionPane.showMessageDialog(null, "n debe estar entre [2, 20]", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            }
         }
     }//GEN-LAST:event_btnIniciar1ActionPerformed
 
     private void txtN1KeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtN1KeyTyped
-        // TODO add your handling code here:
         if (!Character.isDigit(evt.getKeyChar())) {
             evt.consume();
             Toolkit.getDefaultToolkit().beep();
