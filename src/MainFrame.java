@@ -41,7 +41,7 @@ public class MainFrame extends javax.swing.JFrame {
     //Angulo de diferencia entre filosofos
     public double DIFERENCIA;
 
-    public int RADIO_FILOSOFOS = (int) ((NUM_FILOSOFOS * ANCHO_SPRITE) / (2 * Math.PI));
+    public int RADIO_FILOSOFOS;
 
     BufferedImage sentado_comiendo;
     BufferedImage sentado_esperando;
@@ -76,7 +76,6 @@ public class MainFrame extends javax.swing.JFrame {
 
         CENTROX = ANCHO_JPANEL / 2;
         CENTROY = ALTO_JPANEL / 2;
-        DIFERENCIA = (2 * Math.PI) / (NUM_FILOSOFOS);
 
         initComponent();
 
@@ -101,7 +100,6 @@ public class MainFrame extends javax.swing.JFrame {
         scroll.setAutoscrolls(true);
         scroll.setVisible(true);
 
-        
         this.add(label_Log);
         label_Log.setBounds(ANCHO_JPANEL + 5, ALTO_JPANEL / 2 - 24, 32, 24);
 
@@ -110,8 +108,6 @@ public class MainFrame extends javax.swing.JFrame {
         scroll2.setAutoscrolls(true);
         scroll2.setVisible(true);
 
-        
-
         try {
             this.sentado_comiendo = ImageIO.read(new File("imagenes/sentado_comiendo.png"));
             this.sentado_esperando = ImageIO.read(new File("imagenes/sentado_esperando.png"));
@@ -119,7 +115,6 @@ public class MainFrame extends javax.swing.JFrame {
             this.silla = ImageIO.read(new File("imagenes/silla_vacia.png"));
             this.saciado = ImageIO.read(new File("imagenes/saciado.png"));
             this.tenedor = ImageIO.read(new File("imagenes/fork.png"));
-            comenzar();
         } catch (Exception e) {
             System.out.println("Error cargando imagenes: " + e);
         }
@@ -131,6 +126,15 @@ public class MainFrame extends javax.swing.JFrame {
      */
     public void comenzar() {
         btnIniciar1.setEnabled(false);
+        if (NUM_FILOSOFOS > 4) {
+            RADIO_FILOSOFOS = (int) ((NUM_FILOSOFOS * ANCHO_SPRITE) / (2 * Math.PI));
+        } else {
+            RADIO_FILOSOFOS = (int) ((4 * ANCHO_SPRITE) / (2 * Math.PI));
+        }
+
+        System.out.println("Sena Filosofal ;::::z.a..sa..sa.xa" + RADIO_FILOSOFOS);
+        DIFERENCIA = (2 * Math.PI) / (NUM_FILOSOFOS);
+
         tenedores = new Tenedor[NUM_FILOSOFOS];
         filosofos = new Filosofo[NUM_FILOSOFOS];
         comedor = new Semaphore(NUM_FILOSOFOS - 1);
@@ -267,7 +271,9 @@ public class MainFrame extends javax.swing.JFrame {
     @Override
     public void paint(Graphics g) {
         super.paint(g);
-        actualizarJPanelMesa();
+        if (this.filosofos != null) {
+            actualizarJPanelMesa();
+        }
     }
 
     /**
@@ -297,13 +303,6 @@ public class MainFrame extends javax.swing.JFrame {
         jScrollPane2 = new javax.swing.JScrollPane();
         jTextArea3 = new javax.swing.JTextArea();
         jLabel14 = new javax.swing.JLabel();
-        jPanelControles = new javax.swing.JPanel();
-        jLabel11 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea2 = new javax.swing.JTextArea();
-        jLabel12 = new javax.swing.JLabel();
-        txtN = new javax.swing.JTextField();
-        btnIniciar = new javax.swing.JButton();
 
         javax.swing.GroupLayout jPanelMesaLayout = new javax.swing.GroupLayout(jPanelMesa);
         jPanelMesa.setLayout(jPanelMesaLayout);
@@ -345,6 +344,12 @@ public class MainFrame extends javax.swing.JFrame {
         btnIniciar1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnIniciar1ActionPerformed(evt);
+            }
+        });
+
+        txtN1.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                txtN1KeyTyped(evt);
             }
         });
 
@@ -438,51 +443,6 @@ public class MainFrame extends javax.swing.JFrame {
                 .addGap(14, 14, 14))
         );
 
-        jLabel11.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        jLabel11.setText("CENA DE LOS FILÓSOFOS COMENSALES");
-
-        jTextArea2.setEditable(false);
-        jTextArea2.setColumns(20);
-        jTextArea2.setLineWrap(true);
-        jTextArea2.setRows(5);
-        jTextArea2.setText("Problema de la cena de los filósofos comensales restringiendo un máximo de n-1 filósifos sentados al tiempo en la mesa.");
-        jTextArea2.setWrapStyleWord(true);
-        jScrollPane1.setViewportView(jTextArea2);
-
-        jLabel12.setText("Número de filósofos (n):");
-
-        btnIniciar.setText("INICIAR NUEVA SIMULACIÓN");
-
-        javax.swing.GroupLayout jPanelControlesLayout = new javax.swing.GroupLayout(jPanelControles);
-        jPanelControles.setLayout(jPanelControlesLayout);
-        jPanelControlesLayout.setHorizontalGroup(
-            jPanelControlesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel11, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(jPanelControlesLayout.createSequentialGroup()
-                .addGroup(jPanelControlesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanelControlesLayout.createSequentialGroup()
-                        .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 127, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtN, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnIniciar, javax.swing.GroupLayout.DEFAULT_SIZE, 236, Short.MAX_VALUE))
-                    .addComponent(jScrollPane1))
-                .addContainerGap())
-        );
-        jPanelControlesLayout.setVerticalGroup(
-            jPanelControlesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelControlesLayout.createSequentialGroup()
-                .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanelControlesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtN, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnIniciar))
-                .addContainerGap(13, Short.MAX_VALUE))
-        );
-
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
 
@@ -501,8 +461,19 @@ public class MainFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnIniciar1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIniciar1ActionPerformed
-        
+        if (txtN1.getText().length() > 0) {
+            NUM_FILOSOFOS = Integer.parseInt(txtN1.getText());
+            comenzar();
+        }
     }//GEN-LAST:event_btnIniciar1ActionPerformed
+
+    private void txtN1KeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtN1KeyTyped
+        // TODO add your handling code here:
+        if (!Character.isDigit(evt.getKeyChar())) {
+            evt.consume();
+            Toolkit.getDefaultToolkit().beep();
+        }
+    }//GEN-LAST:event_txtN1KeyTyped
 
     /**
      * @param args the command line arguments
@@ -542,13 +513,10 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnIniciar;
-	private javax.swing.JButton btnIniciar1;
+    private javax.swing.JButton btnIniciar1;
     private javax.swing.JPanel convencionPanel;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel2;
@@ -559,13 +527,9 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JPanel jPanelControles;
     private javax.swing.JPanel jPanelMesa;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTextArea jTextArea2;
     private javax.swing.JTextArea jTextArea3;
-    private javax.swing.JTextField txtN;
     private javax.swing.JTextField txtN1;
     // End of variables declaration//GEN-END:variables
 }
