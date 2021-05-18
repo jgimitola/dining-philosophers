@@ -71,10 +71,10 @@ public class MainFrame extends javax.swing.JFrame {
 
         Toolkit tk = Toolkit.getDefaultToolkit();
         Dimension d = tk.getScreenSize();
-        d.setSize(d.width * 0.95, d.height - 48);
+        d.setSize(d.width, d.height - 48);
         this.setSize(d);
 
-        ANCHO_JPANEL = (int) (this.getWidth() * 0.6);
+        ANCHO_JPANEL = (int) (this.getWidth() - 518);
         ALTO_JPANEL = this.getHeight() - 48;
 
         CENTROX = ANCHO_JPANEL / 2;
@@ -99,7 +99,7 @@ public class MainFrame extends javax.swing.JFrame {
         jPanelMesa.setVisible(true);
 
         this.add(scroll);
-        scroll.setBounds(ANCHO_JPANEL + 5, ALTO_JPANEL / 2, (int) ((this.getWidth() * 0.37)), ALTO_JPANEL / 2);
+        scroll.setBounds(ANCHO_JPANEL + 5, ALTO_JPANEL / 2, (int) ((this.getWidth() * 0.37)) - 10, ALTO_JPANEL / 2);
         scroll.setAutoscrolls(true);
         scroll.setVisible(true);
 
@@ -107,7 +107,7 @@ public class MainFrame extends javax.swing.JFrame {
         label_Log.setBounds(ANCHO_JPANEL + 5, ALTO_JPANEL / 2 - 24, 32, 24);
 
         this.add(scroll2);
-        scroll2.setBounds(ANCHO_JPANEL + 5, 0, (int) ((this.getWidth() * 0.37)), label_Log.getY());
+        scroll2.setBounds(ANCHO_JPANEL + 5, 0, 503, label_Log.getY());
         scroll2.setAutoscrolls(true);
         scroll2.setVisible(true);
 
@@ -152,7 +152,7 @@ public class MainFrame extends javax.swing.JFrame {
                 });
 
         //Ejecutamos los filosofos
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < NUM_FILOSOFOS; i++) {
             double angulo = i * DIFERENCIA;
             int x = (int) (CENTROX + (Math.sin(angulo) * RADIO_FILOSOFOS));
             int y = (int) (CENTROY - (Math.cos(angulo) * RADIO_FILOSOFOS));
@@ -170,7 +170,7 @@ public class MainFrame extends javax.swing.JFrame {
         System.out.println("Radio Filoso= " + RADIO_FILOSOFOS);
         System.out.println("Diametro Filoso= " + (RADIO_FILOSOFOS * 2));
         MAXX = MAXX + RADIO_FILOSOFOS + 10;
-        MAXY = MAXY + RADIO_FILOSOFOS * 2;
+        MAXY = MAXY + RADIO_FILOSOFOS;
         CENTROX = MAXX / 2;
         CENTROY = MAXY / 2;
         ExecutorService executor = Executors.newFixedThreadPool(NUM_FILOSOFOS);
@@ -465,10 +465,11 @@ public class MainFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnIniciar1)
-                    .addComponent(txtN1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(txtN1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnIniciar1)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(convencionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(convencionPanelLayout.createSequentialGroup()
@@ -515,13 +516,16 @@ public class MainFrame extends javax.swing.JFrame {
             int n = Integer.parseInt(txtN1.getText());
             NUM_FILOSOFOS = n;
 
-            if (n >= 2 && n <= 40) {
+            if (n >= 2) {
                 comenzar();
             } else {
                 Toolkit.getDefaultToolkit().beep();
                 JOptionPane.showMessageDialog(null, "n debe estar entre [2, 40]", "Advertencia", JOptionPane.WARNING_MESSAGE);
             }
 
+        } else {
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(null, "Debe digitar un valor valido", "Advertencia", JOptionPane.WARNING_MESSAGE);
         }
     }//GEN-LAST:event_btnIniciar1ActionPerformed
 
