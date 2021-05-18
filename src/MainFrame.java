@@ -163,13 +163,8 @@ public class MainFrame extends javax.swing.JFrame {
                 MAXY = y;
             }
         }
-        System.out.println("MAXX= " + MAXX);
-        System.out.println("MAXY= " + MAXY);
-        System.out.println("RestaX = " + (MAXX - ANCHO_JPANEL));
-        System.out.println("RestaY = " + (MAXY - ALTO_JPANEL));
-        System.out.println("Radio Filoso= " + RADIO_FILOSOFOS);
-        System.out.println("Diametro Filoso= " + (RADIO_FILOSOFOS * 2));
-        MAXX = MAXX + RADIO_FILOSOFOS + 10;
+
+        MAXX = MAXX + RADIO_FILOSOFOS;
         MAXY = MAXY + RADIO_FILOSOFOS;
         CENTROX = MAXX / 2;
         CENTROY = MAXY / 2;
